@@ -1,5 +1,9 @@
 package dev.mateuy.katas.sensei
 
+import dev.mateuy.katas.sensei.output.OutputType
+import dev.mateuy.katas.sensei.output.defaultOutputTypeFor
+import dev.mateuy.katas.sensei.output.isAList
+import dev.mateuy.katas.sensei.output.isANonEmptyMatrix
 import kotlinx.html.stream.createHTML
 import kotlinx.html.*
 import kotlin.contracts.ExperimentalContracts
@@ -14,12 +18,14 @@ class Demonstration(){
         stringBuilder.appendLine()
     }
 
-    fun codeAndOutput(outputOptions: OutputOptions = OutputOptions(), body: () -> Any?){
-        code()
-        output(outputOptions, body)
+    fun codeAndOutput(outputType : OutputType<*>? = null, body: () -> Any?){
+        code({})
+        output(outputType, body)
     }
 
-    fun code(body: ()->Any? = {}){
+    fun codeNextLine() = code{}
+
+    fun code(body: ()->Any?){
         val codeStartLine = CodeLine.current()
         stringBuilder.appendLine("```kotlin")
         stringBuilder.appendLine(codeStartLine.withNextLine().getLine().trim())
@@ -27,93 +33,16 @@ class Demonstration(){
         stringBuilder.appendLine()
     }
     
-    fun output(outputOptions: OutputOptions = OutputOptions(), body: () -> Any? ){
-        val output = outputString(outputOptions, body())
+    fun output(outputType : OutputType<*>? = null, body: () -> Any? ){
+        val result = body()
+        val output = outputString(defaultOutputTypeFor(result), result)
         stringBuilder.appendLine(output)
         stringBuilder.appendLine()
     }
 
-    private fun outputString(outputOptions: OutputOptions, result: Any?) :String {
-        if(result == null) return "null"
-        return if(result.isANonEmptyMatrix())
-            outputSparceMatrixString(result as List<List<*>>)
-        else if(result.isAList())
-            outputListString(outputOptions, result as List<*>)
-        else
-            createHTML().div("sensei-output") {
-                table("table table-striped w-auto") {
-                    tr{
-                        td{
-                            +result.toString()
-                        }
-                    }
-                }
-            }
+    private fun outputString(outputType: OutputType<*>, result: Any?) :String =
+        outputType.outputStringFor(result)
 
-    }
-
-    fun outputListString(outputOptions: OutputOptions, result: List<*>) : String =
-        outputMatrixString(result.map{ listOf(it) })
-
-    fun outputSparceMatrixString(result: List<List<*>>) : String =
-        createHTML().div("sensei-output"){
-            table("table table-striped w-auto") {
-                result.forEach{ row ->
-                    tr{
-                        td{
-                            table{
-                                tr{
-                                    row.forEach{ cell ->
-
-                                        td {
-                                            +cell.toString()
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-    fun outputMatrixString(result: List<List<*>>) : String =
-        createHTML().div("sensei-output"){
-            table("table table-striped w-auto") {
-                result.forEach{ row ->
-                    tr{
-                        row.forEach{ cell ->
-                            td {
-                                +cell.toString()
-                            }
-                        }
-                    }
-                }
-            }
-        }
     fun fullReport() = stringBuilder.toString()
 }
 
-@OptIn(ExperimentalContracts::class)
-private fun Any.isAList() : Boolean{
-    contract { returns(true) implies (this@isAList is List<*>) }
-    return this is kotlin.collections.List<*>
-}
-
-
-@OptIn(ExperimentalContracts::class)
-private fun Any.isANotEmptyList() : Boolean{
-    contract { returns(true) implies (this@isANotEmptyList is List<*>) }
-    if(!this.isAList()) return false
-    return !isEmpty()
-}
-
-private fun Any.isANonEmptyMatrix(): Boolean {
-    if(!isANotEmptyList()) return false
-    return first() is List<*>
-}
-
-private fun List<*>.isANonEmptyListOfString(): Boolean {
-    if(!isANotEmptyList()) return false
-    return first() is String
-}

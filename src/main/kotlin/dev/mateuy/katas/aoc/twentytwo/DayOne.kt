@@ -7,7 +7,7 @@ import kotlin.io.path.readLines
 import kotlin.io.path.readText
 
 fun main() {
-    val home = System.getenv("user.home")
+    val home = System.getProperty("user.home")
     demonstrate(path = Path.of("$home/teaching/teachingsite/source/CodeYourOwnAdventure/aoc/2022_1.md")){
 
         text {
@@ -23,7 +23,9 @@ En la primera part hem de calcular la suma total de calories de l'elf que porta 
 Per llegir el fitxer, creem un Path i carreguem tot el contingut a una variable String (input) amb _readText()_. En aquesta explicació faré servir les dades de l'exemple de l'enunciat.""".trimMargin()
         }
 
-        code()
+
+
+        codeNextLine()
         val input = Path.of("src/main/resources/day1.input").readText()
         output {
             input.replace("\n", "\\n")// Print only
@@ -57,7 +59,7 @@ Per llegir el fitxer, creem un Path i carreguem tot el contingut a una variable 
                 | 
                 |Ja tenim una llista de enters on cada cel·la és la suma total de les calories que porta cada elf.""".trimMargin()
         }
-        code()
+        codeNextLine()
         val elves = input.split("\n\n").map{it.lines().sumOf { it.toInt() }}
         output{
             elves

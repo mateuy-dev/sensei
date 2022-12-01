@@ -29,7 +29,26 @@ data class CodeLine(val lineNumber : Int, val path : Path){
         }
     }
 
-    fun getLine() = path.absolute().readLines()[lineNumber-1]
+    fun getLine() = getLine(lineNumber-1)
+
+    private fun getLine(line : Int) = path.absolute().readLines()[line]
+
+    fun getLines() : List<String> {
+        var lines = mutableListOf<String>()
+        var openCount = 1
+        val line = lineNumber
+        while(openCount>0){
+            val currentLine = getLine(line)
+            if(currentLine.trim().equals("}"))
+                openCount--
+            if(currentLine.trim().equals("{"))
+                openCount++
+            if(openCount==0)
+                break
+            lines += getLine(line)
+        }
+        return lines
+    }
 
     fun withNextLine() = copy(lineNumber = lineNumber+1)
 
